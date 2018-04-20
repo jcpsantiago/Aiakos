@@ -6,12 +6,12 @@ save_data <- function(data, table) {
   db <- dbConnect(SQLite(), sqlitePath)
   # Construct the update query by looping over the data fields
   query <- sprintf(
-    "INSERT INTO %s (%s) VALUES (%s)",
+    "INSERT INTO %s (%s) VALUES ('%s')",
     table, 
     paste(names(data), collapse = ", "),
     paste(data, collapse = "', '")
   )
-  
+  # Submit the update query and disconnect
   dbGetQuery(db, query)
   dbDisconnect(db)
 }

@@ -10,7 +10,7 @@ library(shinythemes)
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
   
-  shinyjs::useShinyjs(),
+  useShinyjs(),
   theme = shinytheme("cosmo"),
   br(),
   # Application title
@@ -27,11 +27,11 @@ shinyUI(fluidPage(
     
     # main panel with tabs
     mainPanel(width = 10,
-                tabsetPanel(type = "tabs",
+                tabsetPanel(
                    ## form for adding new participants
                    tabPanel(icon = icon("user"), "Participants",
                             br(),
-                            textInput(inputId = "first_name", label = "First name"),
+                            textInput(inputId = "first_name", label = "First name", value = ""),
                             textInput(inputId = "last_name", label = "Last name"),
                             dateInput(inputId = "date_of_birth", 
                                       label = "Date of birth", 
@@ -41,21 +41,22 @@ shinyUI(fluidPage(
                                       language = "en"),
                             selectInput("study_name", "Select study",
                                         c("", "InsuSO", "THC", "Ghremory")),
-                            actionButton(inputId = "submit_study",
+                            actionButton(inputId = "add_part",
                                          label = "Submit", icon = icon("check"))),
                    
                    
-                   tabPanel(id = "add_study", icon = icon("plus"), "Add study",
+                   tabPanel(icon = icon("plus"), "Add study",
                             br(),
-                            textInput(inputId = "title", label = "Title of the study"),
+                            div(id = "add_study",
+                            textInput(inputId = "title", label = "Title of the study", value = ""),
                             textInput(inputId = "main_res", label = "Main researcher"),
                             selectInput(inputId = "task",
                                         label = "Select tasks",
                                         choices = c("MDBF", "PVT", "SF-A-R"),
                                         selected = "",
                                         selectize = TRUE,
-                                        multiple = TRUE),
-                            shinyjs::hidden(textInput("date_added", "")),
+                                        multiple = TRUE)),
+                            hidden(textInput("date_added", "")),
                             actionButton(inputId = "submit_study",
                                          label = "Submit", icon = icon("check"))),
                    

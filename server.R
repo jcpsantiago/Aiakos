@@ -11,7 +11,9 @@ source("helper.R")
 source("storage.R")
 
 # Define server logic required to draw a histogram
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
+  
+  updateTextInput(session, "date_added", value = get_time_human())
   
   output$logo <- renderImage({
     list(src = here::here("figs/logo.svg"),
@@ -26,13 +28,14 @@ shinyServer(function(input, output) {
   
   # When the Submit button is clicked 
   observeEvent(input$submit_study, {
-    # Update the timestamp field to be the current time
+    
+    # add date to date_added field
     updateTextInput(session, "date_added", value = get_time_human())
     
-    # Save the data
-    save_data(form_data(), table = "studies")
-    shinyjs::reset("add_study")
-    updateTabsetPanel(session, "add_study", "view_studies")
+    # save data to database
+    save_data(form_data(), "studies")
+    
+    reset("add_study")
   })
   
   
@@ -46,21 +49,8 @@ shinyServer(function(input, output) {
   output$studies_table <- DT::renderDataTable(
     DT::datatable(
       responses_data(),
-      rownames = FALSE,
+      rownames = FALSE, colnames = c("Title", "Main researcher", "Tasks", "Date added"),
       options = list(searching = FALSE, lengthChange = FALSE, scrollX = TRUE)
     )
   )
-  
-
-  # output$distPlot <- renderPlot({
-  #   
-  #   # generate bins based on input$bins from ui.R
-  #   x    <- faithful[, 2] 
-  #   bins <- seq(min(x), max(x), length.out = input$bins + 1)
-  #   
-  #   # draw the histogram with the specified number of bins
-  #   hist(x, breaks = bins, col = 'darkgray', border = 'white')
-  #   
-  # })
-  
 })
