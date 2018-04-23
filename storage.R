@@ -1,13 +1,10 @@
-
 sqlitePath <- "hopper.db"
-
-pool <- dbPool(RSQLite::SQLite(), dbname = "hopper.db")
 
 save_data_tidy <- function(con, df, table){
   # df <- map_df(fields, ~ input[[.]])
   
-  df <- mutate(df, first_name = openssl::blake2b(tolower(first_name)),
-                   last_name = openssl::blake2b(tolower(last_name)))
+  df <- mutate(df, first_name = openssl::sha256(tolower(first_name)),
+                   last_name = openssl::sha256(tolower(last_name)))
   
   if(df$date_of_birth){
     df <- mutate(df, date_of_birth = as.character(date_of_birth))

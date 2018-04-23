@@ -21,3 +21,25 @@ fields_task <- c(
 get_time_human <- function() {
   format(Sys.time(), "%Y-%m-%d %H:%M:%OS")
 }
+
+lower_squish_str <- function(string){
+  tolower(paste(unlist(strsplit(string," ")),collapse=""))
+}
+
+# labelMandatory <- function(label) {
+#   tagList(
+#     label,
+#     span("*", class = "mandatory_star")
+#   )
+# }
+
+appCSS <-
+  ".mandatory_star { color: red; }
+   .shiny-input-container { margin-top: 25px; }
+   .datatables { margin-top: 25px; }
+   #a { color: #1E6DE8; }
+   #submit_msg { margin-left: 15px; }
+   #error { color: red; }
+   body { background: #fcfcfc; }
+   #header { background: red; border-bottom: 1px solid #ddd; margin: -20px -15px 0; padding: 15px 15px 10px; }
+  "
