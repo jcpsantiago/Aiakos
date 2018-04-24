@@ -49,7 +49,7 @@ ui <- shinyUI(fluidPage(
                                hidden(div(id = "part_test_info",
                                           p(strong("WARNING:"), "This person has taken part in
                                             other studies!", emo::ji("hand")),
-                                          p("Make sure there are no conflicts between studies."),
+                                          p("Make sure there are no conflicts."),
                                           tableOutput(outputId = "part_test"))),
                                dateInput(inputId = "date_of_birth", 
                                          label = "Date of birth", 
@@ -184,7 +184,7 @@ server <- shinyServer(function(input, output, session) {
   
   observe({
     toggleElement("part_test_info", condition = !(is.null(df_part_joined())))
-    toggleState("add_part_click", condition = (!(is.null(df_part())) && is.null(df_part_joined())))
+    toggleState("add_part_click", condition = !(is.null(df_part())))
   })
 
   part_data <- reactive({
