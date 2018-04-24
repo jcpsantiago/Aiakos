@@ -147,43 +147,46 @@ server <- shinyServer(function(input, output, session) {
   # }, deleteFile = FALSE)
   
   #### Add participant ####
-  observe({
-    if (input$first_name > 0 & input$last_name > 0){
-      df_part <- pool %>% tbl("participants") %>%
+
+  df_part <- reactive({
+    if (input$first_name > 0 && input$last_name > 0){
+      pool %>% tbl("participants") %>%
         filter(first_name == stringr::str_extract(openssl::sha256(tolower(input$first_name)), "[0-9a-z]+") & last_name == stringr::str_extract(openssl::sha256(tolower(input$last_name)), "[0-9a-z]+")) %>%
         collect
-      
-      parcheck <- count(df_part)
-      
-      if(parcheck$n > 0){
-        
-        a <- df_part %>%
-          left_join(., pool %>% tbl("part_study"), by = c("id" = "part_reference"), copy = TRUE) %>%
-          left_join(., pool %>% tbl("study_task"), by = "study_reference", copy = TRUE) %>%
-          left_join(., pool %>% tbl("studies"), by = c("study_reference" = "id"), copy = TRUE) %>%
-          left_join(., pool %>% tbl("tasks"), by = c("task_reference" = "id"), copy = TRUE) %>%
-          select(c(study_title, year_started, task_name)) %>%
-          arrange(task_name) %>%
-          distinct() %>%
-          group_by(study_title, year_started) %>%
-          summarize(tasks = stringr::str_flatten(task_name, collapse = ", ")) %>%
-          rename("Study title" = study_title,
-                 "Year study started" = year_started,
-                 "Tasks" = tasks)
-        
-        output$part_test <- renderTable(
-          as.data.frame(a))
-        
-        toggle("part_test_info")
-        
-      } else {
-        hide("part_test_info")
-      }
     } else {
-      hide("part_test_info")
+      NULL
     }
   })
-  # 
+  
+  df_part_joined <- reactive({
+    if(!(is.null(df_part())) && nrow(df_part()) > 0){
+      df_part() %>%
+        left_join(., pool %>% tbl("part_study"), by = c("id" = "part_reference"), copy = TRUE) %>%
+        left_join(., pool %>% tbl("study_task"), by = "study_reference", copy = TRUE) %>%
+        left_join(., pool %>% tbl("studies"), by = c("study_reference" = "id"), copy = TRUE) %>%
+        left_join(., pool %>% tbl("tasks"), by = c("task_reference" = "id"), copy = TRUE) %>%
+        select(c(study_title, year_started, task_name)) %>%
+        arrange(task_name) %>%
+        distinct() %>%
+        group_by(study_title, year_started) %>%
+        summarize(tasks = stringr::str_flatten(task_name, collapse = ", ")) %>%
+        rename("Study title" = study_title,
+               "Year study started" = year_started,
+               "Tasks" = tasks)
+    } else {
+      NULL
+    }
+  })
+  
+  observe({
+    output$part_test <- renderTable(df_part_joined())
+  })
+  
+  observe({
+    toggleElement("part_test_info", condition = !(is.null(df_part_joined())))
+    toggleState("add_part_click", condition = (!(is.null(df_part())) && is.null(df_part_joined())))
+  })
+
   part_data <- reactive({
     map_df(fields_participant, ~ input[[.]])
   })
