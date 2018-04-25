@@ -7,15 +7,15 @@ fields_participant <- c(
 )
 
 fields_study <- c(
-  "study_title",
-  "contact_person",
-  "year_started",
-  "date_added"
+  "study_title" = "study_title",
+  "contact_person" = "contact_person",
+  "year_started" = "year_started",
+  "date_added" = "date_added"
 )
 
 fields_task <- c(
-  "task_name",
-  "task_desc"
+  "task_name" = "task_name",
+  "task_desc" = "task_desc"
 )
 
 get_time_human <- function() {
@@ -34,10 +34,9 @@ lower_squish_str <- function(string){
 # }
 
 appCSS <-
-  ".mandatory_star { color: red; }
+  "#.mandatory_star { color: red; }
    .shiny-input-container { margin-top: 25px; }
    .datatables { margin-top: 25px; }
-   #a { color: #1E6DE8; }
    #submit_msg { margin-left: 15px; }
    #error { color: red; }
    body { background: #fcfcfc; }

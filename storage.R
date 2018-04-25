@@ -3,12 +3,12 @@ sqlitePath <- "hopper.db"
 save_data_tidy <- function(con, df, table){
   # df <- map_df(fields, ~ input[[.]])
   
-  df <- mutate(df, first_name = openssl::sha256(tolower(first_name)),
-                   last_name = openssl::sha256(tolower(last_name)))
-  
-  if(df$date_of_birth){
-    df <- mutate(df, date_of_birth = as.character(date_of_birth))
-    db_insert_into(con, table, df)
+  if(!(is.null(df$date_of_birth))){
+    df %>%
+      mutate(date_of_birth = as.character(date_of_birth),
+             first_name = openssl::sha256(tolower(first_name)),
+             last_name = openssl::sha256(tolower(last_name))) %>%
+      db_insert_into(con, table, .)
   } else
     db_insert_into(con, table, df)
 }
