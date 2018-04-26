@@ -29,10 +29,10 @@ ui <- shinyUI(
     
     #### Application title ####
     titlePanel(div(
-      paste("Study Butler", emo::ji("groom")),
-      h4("Institute of Medical Psychology")
+      p("Aiakos", emo::ji("trident"), br(),
+      h4("Institute of Medical Psychology"))
     ),
-    windowTitle = "Butler"),
+    windowTitle = "Aiakos"),
     
     #### Sidebar ####
     sidebarLayout(
