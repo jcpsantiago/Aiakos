@@ -25,6 +25,7 @@ ui <- shinyUI(
     useShinyjs(),
     theme = shinytheme("cosmo"),
     inlineCSS(appCSS),
+    # tags$head(tags$link(rel="icon", href="www/favicon.ico")),
     br(),
     
     #### Application title ####
