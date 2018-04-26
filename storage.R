@@ -1,3 +1,5 @@
+sqlitePath <- "hopper.db"
+
 save_data_tidy <- function(con, df, table){
 
   if(!(is.null(df$date_of_birth))){

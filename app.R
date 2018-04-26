@@ -25,12 +25,13 @@ ui <- shinyUI(
     useShinyjs(),
     theme = shinytheme("cosmo"),
     inlineCSS(appCSS),
+    # tags$head(tags$link(rel="icon", href="www/favicon.ico")),
     br(),
     
     #### Application title ####
     titlePanel(div(
-      p("Aiakos", emo::ji("trident"), br(),
-      h4("Institute of Medical Psychology"))
+      paste("Aiakos", emo::ji("trident")),
+      h4("Institute of Medical Psychology")
     ),
     windowTitle = "Aiakos"),
     

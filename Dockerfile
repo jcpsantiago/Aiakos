@@ -20,11 +20,11 @@ RUN R -e "devtools::install_github('ThomasSiegmund/shinyTypeahead')"
 RUN R -e 'install.packages("devtools", repos = "https://cloud.r-project.org")'
 RUN R -e 'devtools::install_github("rstudio/DT")'
 
-RUN mkdir /srv/shiny-server/butler/
+RUN mkdir /srv/shiny-server/Aiakos/
 
-RUN chmod -R a+rwx /srv/shiny-server/butler/
+RUN chmod -R a+rwx /srv/shiny-server/Aiakos/
 
-COPY *.R /srv/shiny-server/butler/
-COPY hopper.db /srv/shiny-server/butler/
+COPY *.R /srv/shiny-server/Aiakos/
+COPY hopper.db /srv/shiny-server/Aiakos/
 
-RUN chmod -R a+rwx /srv/shiny-server/butler/hopper.db
+RUN chmod -R a+rwx /srv/shiny-server/Aiakos/hopper.db
