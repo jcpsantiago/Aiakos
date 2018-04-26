@@ -62,7 +62,7 @@ ui <- shinyUI(
               textInput(
                 inputId = "first_name",
                 label = "First name",
-                value = "Joao"
+                value = ""
               ),
               textInput(
                 inputId = "last_name",
@@ -475,8 +475,7 @@ server <- shinyServer(function(input, output, session) {
   ## entered task
   df_study_joined <- eventReactive(df_study(), {
     lower_case_study_title <- lower_squish_str(input$study_title)
-    print(lower_case_study_title)
-    
+
     pool %>% tbl("studies") %>%
       left_join(., pool %>% tbl("study_task"), by = c("id" = "study_reference")) %>%
       left_join(., pool %>% tbl("tasks"), by = c("task_reference" = "id")) %>%
@@ -502,7 +501,7 @@ server <- shinyServer(function(input, output, session) {
   ## with description, if df_study_joined has more than one row i.e. there's a
   ## match between the chosen name and the database
   observeEvent(df_study_joined(), {
-    print(nrow(df_study_joined()))
+
     toggleElement("study_test_info",
                   condition = nrow(df_study_joined()) > 0)
     
@@ -557,13 +556,17 @@ server <- shinyServer(function(input, output, session) {
   # Update the studies whenever a new submission is made
   studies_datatable <- reactive({
     input$add_study_click
-    load_data(table = "studies")
+    
+    pool %>% tbl("studies") %>%
+      select(-c(id)) %>%
+      arrange(year_started) %>%
+      collect
   })
   
   # Show the studies in a table
   output$studies_table <- DT::renderDataTable(
     DT::datatable(
-      studies_datatable() %>% dplyr::select(-id),
+      studies_datatable(),
       rownames = FALSE,
       style = "bootstrap",
       colnames = c("Title", "Main researcher", "Date started", "Date added"),
