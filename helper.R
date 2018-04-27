@@ -93,18 +93,11 @@ withBusyIndicatorUI <- function(button) {
 # Call this function from the server with the button id that is clicked and the
 # expression to run when the button is clicked
 withBusyIndicatorServer <- function(buttonId, expr) {
-  # UX stuff: show the "busy" message, hide the other messages, disable the button
-  # loadingEl <- sprintf("[data-for-btn=%s] .btn-loading-indicator", buttonId)
+
   doneEl <- sprintf("[data-for-btn=%s] .btn-done-indicator", buttonId)
   errEl <- sprintf("[data-for-btn=%s] .btn-err", buttonId)
-  shinyjs::disable(buttonId)
-  # shinyjs::show(selector = loadingEl)
   shinyjs::hide(selector = doneEl)
   shinyjs::hide(selector = errEl)
-  on.exit({
-    shinyjs::enable(buttonId)
-    # shinyjs::hide(selector = loadingEl)
-  })
   
   # Try to run the code when the button is clicked and show an error message if
   # an error occurs or a success message if it completes
@@ -127,9 +120,26 @@ errorFunc <- function(err, buttonId) {
 }
 
 appCSS <- "
+.tabbable > .nav > li[class=active] > a {
+           color: #158CBA;
+}
+.nav-tabs a:focus, 
+.nav-tabs a:hover {
+    color: #657DB1;
+}
 .btn-done-indicator {
-  color: #00c924;
+  color: #28b62c;
 }
 .shiny-input-container { margin-top: 15px; }
 .datatables { margin-top: 15px; }
+a {
+  color: #158CBA;
+  text-decoration: none;
+  background-color: transparent;
+  -webkit-text-decoration-skip: objects;
+}
+a:hover {
+  color: #0d5875;
+  text-decoration: underline;
+}
 "

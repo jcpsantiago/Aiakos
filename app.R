@@ -6,7 +6,7 @@ library(purrr)
 library(RSQLite)
 
 ## open the connction to the database
-pool <- dbPool(RSQLite::SQLite(), dbname = "hopper.db")
+pool <- dbPool(SQLite(), dbname = "hopper.db")
 
 source("helper.R")
 source("storage.R")
@@ -428,7 +428,7 @@ server <- shinyServer(function(input, output, session) {
     
     output$task_test_table <- renderTable({
       df_task_joined()
-    })
+    },  width = "500px")
     # print(nrow(df_task_joined()) > 0) ONLY FOR DEBUGGING !
     
   })
@@ -573,7 +573,7 @@ server <- shinyServer(function(input, output, session) {
     
     output$study_test_table <- renderTable({
       df_study_joined()
-    })
+    }, width = "500px")
     
   })
   
