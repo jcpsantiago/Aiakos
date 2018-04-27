@@ -24,7 +24,7 @@ ui <- shinyUI(
     useShinyjs(),
     theme = shinythemes::shinytheme("lumen"),
     inlineCSS(appCSS),
-    # tags$head(tags$link(rel="icon", href="www/favicon.ico")),
+    tags$head(tags$link(rel="icon", href="favicon.ico")),
     br(),
     
     #### Application title ####
