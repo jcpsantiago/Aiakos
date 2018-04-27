@@ -24,6 +24,7 @@ RUN mkdir /srv/shiny-server/Aiakos/
 
 RUN chmod -R a+rwx /srv/shiny-server/Aiakos/
 
+ADD www	/srv/shiny-server/Aiakos/www
 COPY *.R /srv/shiny-server/Aiakos/
 COPY hopper.db /srv/shiny-server/Aiakos/
 
