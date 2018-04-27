@@ -1,16 +1,15 @@
 library(shiny)
 library(shinyjs)
-library(shinythemes)
 library(pool)
-library(RSQLite)
 library(dplyr)
 library(purrr)
-
-source("helper.R")
-source("storage.R")
+library(RSQLite)
 
 ## open the connction to the database
 pool <- dbPool(RSQLite::SQLite(), dbname = "hopper.db")
+
+source("helper.R")
+source("storage.R")
 
 ## when the app stops, close all open connections
 onStop(function() {
@@ -23,31 +22,61 @@ onStop(function() {
 ui <- shinyUI(
   fluidPage(
     useShinyjs(),
-    theme = shinytheme("cosmo"),
+    theme = shinythemes::shinytheme("lumen"),
     inlineCSS(appCSS),
     # tags$head(tags$link(rel="icon", href="www/favicon.ico")),
     br(),
     
     #### Application title ####
     titlePanel(div(
-      paste("Aiakos", emo::ji("trident")),
+      paste("Aiakos"),
+      img(style = "height:35px", src = "logo.png"),
+      br(),
       h4("Institute of Medical Psychology")
     ),
     windowTitle = "Aiakos"),
     
     #### Sidebar ####
     sidebarLayout(
-      sidebarPanel(width = 2,
-                   div(style = "text-align:center",
-                       h1(emo::ji(
-                         "brain"
-                       )),
-                       p(
-                         a(icon("github", "fa-2x"), href = "https://github.com/jcpsantiago/hopperStopper"),
-                         a(icon("envelope", "fa-2x"), href = "mailto:joao.santiago@uni-tuebingen.de?Subject=Help!%20Study%20Butler%20not%20working!", target =
-                             "_top")
-                       ),
-                       br(), br())),
+      sidebarPanel(
+        width = 2,
+        div(
+          style = "text-align:left",
+          h3(strong("Welcome!")),
+          p(
+            "To add a new study, check the",
+            em("Tasks"),
+            "and",
+            em("Studies"),
+            "tabs first.",
+            br(),
+            "If they are missing , add tasks first in the",
+            em("Add task"),
+            "tab, then",
+            em("Add study"),
+            ".",
+            br(),
+            br(),
+            "You are now ready to add participants!",
+            emo::ji("smile")
+          )
+        ),
+        hr(),
+        div(
+          id = "aiakos_stats",
+          style = "text-align:left",
+          h4("Current stats"),
+          uiOutput("side_stats")
+        ),
+        hr(),
+        div(style = "text-align:center",
+            p(
+              a(icon("github", "fa-2x"), href = "https://github.com/jcpsantiago/Aiakos"),
+              a(icon("envelope", "fa-2x"), href = "mailto:joao.santiago@uni-tuebingen.de?Subject=Help!%20Aiakos%20not%20working!", target =
+                  "_top")
+            ),
+            br())
+      ),
       
       # main panel with tabs
       mainPanel(
@@ -78,7 +107,7 @@ ui <- shinyUI(
                   other studies!",
                   emo::ji("hand")
                 ),
-                p("Make sure there are no conflicts."),
+                p("Make sure there are no conflicts before submitting."),
                 tableOutput(outputId = "part_test")
               )),
               dateInput(
@@ -98,10 +127,12 @@ ui <- shinyUI(
                                       pull())
                         )),
             hidden(textInput("date_added", "")),
-            actionButton(
-              inputId = "add_part_click",
-              label = "Submit",
-              icon = icon("check")
+            withBusyIndicatorUI(
+              actionButton(
+                inputId = "add_part_click",
+                label = "Submit",
+                icon = icon("check")
+              )
             )
           ),
           
@@ -151,10 +182,12 @@ ui <- shinyUI(
               )
             ),
             hidden(textInput("date_added", "")),
-            actionButton(
-              inputId = "add_study_click",
-              label = "Submit",
-              icon = icon("check")
+            withBusyIndicatorUI(
+              actionButton(
+                inputId = "add_study_click",
+                label = "Submit",
+                icon = icon("check")
+              )
             )
           ),
           
@@ -195,10 +228,12 @@ ui <- shinyUI(
                 value = ""
               )
             ),
-            actionButton(
-              inputId = "add_task_click",
-              label = "Submit",
-              icon = icon("check")
+            withBusyIndicatorUI(
+              actionButton(
+                inputId = "add_task_click",
+                label = "Submit",
+                icon = icon("check")
+              )
             )
           ),
           
@@ -237,6 +272,20 @@ server <- shinyServer(function(input, output, session) {
   ## set initial value for the hidden date_added parameter
   updateTextInput(session, "date_added", value = get_time_human())
 
+  observe({
+  output$side_stats <- renderUI({
+    h4(
+      strong(studies_side_stats()),
+      "studies",
+      br(),
+      strong(tasks_side_stats()),
+      "tasks",
+      br(),
+      strong(part_side_stats()),
+      "unique participants"
+    )
+  })
+  })
   
   ## placeholder code for an image, in case we want to add a logo in the future
   # output$logo <- renderImage({
@@ -302,7 +351,7 @@ server <- shinyServer(function(input, output, session) {
   ## last name given by the user
   observeEvent(df_part_joined(), {
     toggleElement("part_test_info", condition = nrow(df_part_joined()) > 0)
-    output$part_test <- renderTable(df_part_joined())
+    output$part_test <- renderTable(df_part_joined(), width = "500px")
   })
   
   ## activate the submit button when both first and last names do not match 
@@ -321,16 +370,24 @@ server <- shinyServer(function(input, output, session) {
   
   # When the Submit button is clicked
   observeEvent(input$add_part_click, {
-    # add date to date_added field
-    updateTextInput(session, "date_added", value = get_time_human())
+    withBusyIndicatorServer("add_part_click", {
+      # add date to date_added field
+      updateTextInput(session, "date_added", value = get_time_human())
+      
+      # save data to database
+      save_data_tidy(pool, part_data(), "participants")
+      # save the participant/study relationship into the part_study table
+      map_part_study(input$study_title_sel)
+      
+      # delete all user input from the add participant tab
+      reset("add_participant")
+    })
+  })
+  
+  part_side_stats <- reactive({
+    input$add_part_click
     
-    # save data to database
-    save_data_tidy(pool, part_data(), "participants")
-    # save the participant/study relationship into the part_study table
-    map_part_study(input$study_title_sel)
-    
-    # delete all user input from the add participant tab
-    reset("add_participant")
+    quick_stat("participants", pool)
   })
   
   
@@ -401,10 +458,11 @@ server <- shinyServer(function(input, output, session) {
     # l
   })
   
-  
   # When the Submit button is clicked
   observeEvent(input$add_task_click, {
-    # add date to (hidden) date_added field
+   
+    withBusyIndicatorServer("add_task_click", {
+     # add date to (hidden) date_added field
     updateTextInput(session, "date_added", value = get_time_human())
     
     # save data to database
@@ -431,6 +489,13 @@ server <- shinyServer(function(input, output, session) {
                                              select(task_name) %>%
                                              pull()
                                          )))
+    })
+  })
+  
+  tasks_side_stats <- reactive({
+    input$add_task_click
+    
+    quick_stat("tasks", pool)
   })
   
   ## Update the studies tab/table whenever a new submission is made
@@ -533,25 +598,34 @@ server <- shinyServer(function(input, output, session) {
   
   # When the Submit button is clicked
   observeEvent(input$add_study_click, {
-    # add date to date_added field
-    updateTextInput(session, "date_added", value = get_time_human())
     
-    # save data to database
-    save_data_tidy(pool, studies_data(), "studies")
+    withBusyIndicatorServer("add_study_click", {
+      # add date to date_added field
+      updateTextInput(session, "date_added", value = get_time_human())
+      
+      # save data to database
+      save_data_tidy(pool, studies_data(), "studies")
+      
+      # map study to tasks
+      purrr::walk(input$tasks, ~ map_study_task(input$study_title, .))
+      
+      # delete all user inputs in the study tab
+      reset("add_study")
+      
+      updateSelectInput(session, "study_title_sel",
+                        choices = levels(as.factor(
+                          pool %>%
+                            tbl("studies") %>%
+                            select(study_title) %>%
+                            pull()
+                        )))
+    })
+  })
+  
+  studies_side_stats <- reactive({
+    input$add_study_click
     
-    # map study to tasks
-    purrr::walk(input$tasks, ~ map_study_task(input$study_title, .))
-    
-    # delete all user inputs in the study tab
-    reset("add_study")
-    
-    updateSelectInput(session, "study_title_sel",
-                      choices = levels(as.factor(
-                        pool %>%
-                          tbl("studies") %>%
-                          select(study_title) %>%
-                          pull()
-                      )))
+    quick_stat("studies", pool)
   })
   
   # Update the studies whenever a new submission is made
