@@ -6,7 +6,7 @@ library(purrr)
 library(RSQLite)
 
 ## open the connction to the database
-pool <- dbPool(SQLite(), dbname = "hopper.db")
+pool <- dbPool(RSQLite::SQLite(), dbname = "hopper.db")
 
 source("helper.R")
 source("storage.R")
@@ -24,7 +24,7 @@ ui <- shinyUI(
     useShinyjs(),
     theme = shinythemes::shinytheme("lumen"),
     inlineCSS(appCSS),
-    tags$head(tags$link(rel="icon", href="favicon.ico")),
+    # tags$head(tags$link(rel="icon", href="www/favicon.ico")),
     br(),
     
     #### Application title ####
@@ -50,7 +50,7 @@ ui <- shinyUI(
             em("Studies"),
             "tabs first.",
             br(),
-            "If they are missing , add tasks first in the",
+            "If they are missing, add tasks first in the",
             em("Add task"),
             "tab, then",
             em("Add study"),
@@ -99,6 +99,14 @@ ui <- shinyUI(
                 label = "Last name",
                 value = ""
               ),
+              dateInput(
+                inputId = "date_of_birth",
+                label = "Date of birth",
+                value = "1990-01-29",
+                format = "yyyy-mm-dd",
+                startview = "year",
+                language = "en"
+              ),
               hidden(div(
                 id = "part_test_info",
                 p(
@@ -109,15 +117,7 @@ ui <- shinyUI(
                 ),
                 p("Make sure there are no conflicts before submitting."),
                 tableOutput(outputId = "part_test")
-              )),
-              dateInput(
-                inputId = "date_of_birth",
-                label = "Date of birth",
-                value = "1990-01-29",
-                format = "yyyy-mm-dd",
-                startview = "year",
-                language = "en"
-              )
+              ))
               ),
             selectInput("study_title_sel", "Select study",
                         levels(
@@ -313,9 +313,7 @@ server <- shinyServer(function(input, output, session) {
     
   })
   
-  ## whenever df_part changes, create a table resulting from the join of studies
-  ## and tasks matching the names given by the user
-  df_part_joined <- eventReactive(df_part(), {
+  df_part_studies <- eventReactive(df_part(), {
     df_part() %>%
       left_join(
         .,
@@ -333,7 +331,13 @@ server <- shinyServer(function(input, output, session) {
       left_join(.,
                 pool %>% tbl("tasks"),
                 by = c("task_reference" = "id"),
-                copy = TRUE) %>%
+                copy = TRUE)
+  })
+  
+  ## whenever df_part changes, create a table resulting from the join of studies
+  ## and tasks matching the names given by the user
+  df_part_joined <- eventReactive(df_part(), {
+     df_part_studies() %>%
       select(c(study_title, year_started, task_name)) %>%
       arrange(task_name) %>%
       distinct() %>%
@@ -352,7 +356,14 @@ server <- shinyServer(function(input, output, session) {
   observeEvent(df_part_joined(), {
     toggleElement("part_test_info", condition = nrow(df_part_joined()) > 0)
     output$part_test <- renderTable(df_part_joined(), width = "500px")
-  })
+    
+    ## update the task selection in the add study tab
+    ## to include the newly added study
+    updateSelectInput(session, "study_title",
+                      choices = levels(as.factor(
+                       df_part_studies()$study_title
+                      )))
+ })
   
   ## activate the submit button when both first and last names do not match 
   ## the database and the fields are not empty
@@ -428,7 +439,7 @@ server <- shinyServer(function(input, output, session) {
     
     output$task_test_table <- renderTable({
       df_task_joined()
-    },  width = "500px")
+    })
     # print(nrow(df_task_joined()) > 0) ONLY FOR DEBUGGING !
     
   })
@@ -573,7 +584,7 @@ server <- shinyServer(function(input, output, session) {
     
     output$study_test_table <- renderTable({
       df_study_joined()
-    }, width = "500px")
+    })
     
   })
   
