@@ -301,13 +301,15 @@ server <- shinyServer(function(input, output, session) {
   df_part <- eventReactive({
     input$first_name
     input$last_name
+    input$date_of_birth
   }, {
     disable("add_part_click")
     
     pool %>% tbl("participants") %>%
       filter(
         first_name == stringr::str_extract(openssl::sha256(tolower(input$first_name)), "[0-9a-z]+") &
-          last_name == stringr::str_extract(openssl::sha256(tolower(input$last_name)), "[0-9a-z]+")
+        last_name == stringr::str_extract(openssl::sha256(tolower(input$last_name)), "[0-9a-z]+") &
+        date_of_birth == stringr::str_extract(openssl::sha256(as.character(input$date_of_birth)), "[0-9]+")
       ) %>%
       collect
     

@@ -4,7 +4,7 @@ save_data_tidy <- function(con, df, table){
 
   if(!(is.null(df$date_of_birth))){
     df %>%
-      mutate(date_of_birth = as.character(date_of_birth),
+      mutate(date_of_birth = stringr::str_extract(openssl::sha256(as.character(date_of_birth)), "[0-9]+"),
              first_name = openssl::sha256(tolower(first_name)),
              last_name = openssl::sha256(tolower(last_name))) %>%
       db_insert_into(con, table, .)

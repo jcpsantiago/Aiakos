@@ -119,6 +119,19 @@ errorFunc <- function(err, buttonId) {
   shinyjs::show(selector = errEl, anim = TRUE, animType = "fade")
 }
 
+# Create a little question mark link that shows a help popup on hover
+helpPopup <- function(content, title = NULL) {
+  a(href = "#",
+    class = "popover-link",
+    `data-toggle` = "popover",
+    `data-title` = title,
+    `data-content` = content,
+    `data-html` = "true",
+    `data-trigger` = "hover",
+    icon("question-circle")
+  )
+}
+
 appCSS <- "
 .tabbable > .nav > li[class=active] > a {
            color: #158CBA;
