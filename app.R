@@ -103,7 +103,7 @@ ui <- shinyUI(
                 inputId = "date_of_birth",
                 label = "Date of birth",
                 value = "1990-01-29",
-                format = "yyyy-mm-dd",
+                format = "dd-mm-yyyy",
                 startview = "year",
                 language = "en"
               ),
@@ -111,7 +111,7 @@ ui <- shinyUI(
                 id = "part_test_info",
                 p(
                   strong("WARNING:"),
-                  "This person has taken part in
+                  "This person participated in
                   other studies!",
                   emo::ji("hand")
                 ),
@@ -123,6 +123,7 @@ ui <- shinyUI(
                         levels(
                           as.factor(pool %>%
                                       tbl("studies") %>%
+                                      arrange(year_started) %>%
                                       select(study_title) %>%
                                       pull())
                         )),
@@ -309,7 +310,7 @@ server <- shinyServer(function(input, output, session) {
       filter(
         first_name == stringr::str_extract(openssl::sha256(tolower(input$first_name)), "[0-9a-z]+") &
         last_name == stringr::str_extract(openssl::sha256(tolower(input$last_name)), "[0-9a-z]+") &
-        date_of_birth == stringr::str_extract(openssl::sha256(as.character(input$date_of_birth)), "[0-9]+")
+        date_of_birth == stringr::str_extract(openssl::sha256(as.character(input$date_of_birth)), "[0-9a-z]+")
       ) %>%
       collect
     
@@ -359,12 +360,18 @@ server <- shinyServer(function(input, output, session) {
     toggleElement("part_test_info", condition = nrow(df_part_joined()) > 0)
     output$part_test <- renderTable(df_part_joined(), width = "500px")
     
-    ## update the task selection in the add study tab
-    ## to include the newly added study
-    updateSelectInput(session, "study_title",
-                      choices = levels(as.factor(
-                       df_part_studies()$study_title
-                      )))
+    ## update the study dropdown removing the study the person has already
+    ## took part in
+    if(nrow(df_part_joined()) > 0)
+      updateSelectInput(session, "study_title_sel",
+                        choices = levels(
+                          as.factor(pool %>%
+                                      tbl("studies") %>%
+                                      filter(!(study_title %in% df_part_studies()$study_title)) %>%
+                                      arrange(year_started) %>%
+                                      select(study_title) %>%
+                                      pull())
+                        ))
  })
   
   ## activate the submit button when both first and last names do not match 
