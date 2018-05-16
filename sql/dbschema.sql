@@ -1,11 +1,11 @@
 PRAGMA foreign_keys = ON; -- enforce foreign key constraint
 
 -- make the main tables
-CREATE TABLE study (id INTEGER PRIMARY KEY,
+CREATE TABLE studies (id INTEGER PRIMARY KEY,
 	study_title TEXT unique, contact_person TEXT, year_started date,
 	date_added date);
 
-CREATE TABLE task  (id INTEGER PRIMARY KEY, task_name TEXT unique,
+CREATE TABLE tasks  (id INTEGER PRIMARY KEY, task_name TEXT unique,
 	description TEXT, date_added date);
 
 CREATE TABLE participants (id INTEGER PRIMARY KEY,
