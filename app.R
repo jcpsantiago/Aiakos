@@ -379,6 +379,15 @@ server <- shinyServer(function(input, output, session) {
                                       select(study_title) %>%
                                       pull())
                         ))
+    else
+      updateSelectInput(session, "study_title_sel",
+                        choices = levels(
+                          as.factor(pool %>%
+                                      tbl("studies") %>%
+                                      arrange(year_started) %>%
+                                      select(study_title) %>%
+                                      pull())
+                        ))
  })
   
   ## activate the submit button when both first and last names do not match 
@@ -386,7 +395,7 @@ server <- shinyServer(function(input, output, session) {
   observeEvent(df_part(), {
     toggle(
       "part_available",
-      condition = nchar(input$first_name) > 0 && nchar(input$last_name) > 0
+      condition = nchar(input$first_name) > 0 && nchar(input$last_name) > 0 && nrow(df_part_joined()) < 1
       )
     
     toggleState(
@@ -669,7 +678,6 @@ server <- shinyServer(function(input, output, session) {
       left_join(.,
                 pool %>% tbl("tasks") %>% select(-date_added),
                 by = c("task_reference" = "id")) %>%
-      #select(c(study_title, contact_person, year_started, task_name, date_added)) %>%
       arrange(task_name) %>%
       distinct() %>%
       group_by(study_title, contact_person, year_started, date_added) %>%
@@ -691,7 +699,6 @@ server <- shinyServer(function(input, output, session) {
       studies_datatable(),
       rownames = FALSE,
       style = "bootstrap",
-      # colnames = c("Title", "Main researcher", "Tasks", "Date started", "Date added"),
       options = list(
         searching = TRUE,
         lengthChange = TRUE,
