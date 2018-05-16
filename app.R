@@ -117,6 +117,13 @@ ui <- shinyUI(
                 ),
                 p("Make sure there are no conflicts before submitting."),
                 tableOutput(outputId = "part_test")
+              )),
+              hidden(div(
+                id = "part_available",
+                p(
+                  "This person is not in the database yet!",
+                  emo::ji("thumbsup")
+                )
               ))
               ),
             selectInput("study_title_sel", "Select study",
@@ -377,6 +384,11 @@ server <- shinyServer(function(input, output, session) {
   ## activate the submit button when both first and last names do not match 
   ## the database and the fields are not empty
   observeEvent(df_part(), {
+    toggle(
+      "part_available",
+      condition = nchar(input$first_name) > 0 && nchar(input$last_name) > 0
+      )
+    
     toggleState(
       "add_part_click",
       condition = nchar(input$first_name) > 0 && nchar(input$last_name) > 0
