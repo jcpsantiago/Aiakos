@@ -665,9 +665,24 @@ server <- shinyServer(function(input, output, session) {
     input$add_study_click
     
     pool %>% tbl("studies") %>%
-      select(-c(id)) %>%
-      arrange(year_started) %>%
-      collect
+      left_join(., pool %>% tbl("study_task"), by = c("id" = "study_reference")) %>%
+      left_join(.,
+                pool %>% tbl("tasks") %>% select(-date_added),
+                by = c("task_reference" = "id")) %>%
+      #select(c(study_title, contact_person, year_started, task_name, date_added)) %>%
+      arrange(task_name) %>%
+      distinct() %>%
+      group_by(study_title, contact_person, year_started, date_added) %>%
+      collect() %>%
+      summarize(tasks = stringr::str_flatten(task_name, collapse = ", ")) %>%
+      arrange(desc(.$year_started)) %>%
+      rename(
+        "Study title" = study_title,
+        "Contact person" = contact_person,
+        "Year study started" = year_started,
+        "Tasks" = tasks,
+        "Date added" = date_added
+      )
   })
   
   # Show the studies in a table
@@ -676,7 +691,7 @@ server <- shinyServer(function(input, output, session) {
       studies_datatable(),
       rownames = FALSE,
       style = "bootstrap",
-      colnames = c("Title", "Main researcher", "Date started", "Date added"),
+      # colnames = c("Title", "Main researcher", "Tasks", "Date started", "Date added"),
       options = list(
         searching = TRUE,
         lengthChange = TRUE,
