@@ -6,7 +6,7 @@ library(purrr)
 library(RSQLite)
 
 ## open the connction to the database
-pool <- dbPool(RSQLite::SQLite(), dbname = "hopper.db")
+pool <- dbPool(RSQLite::SQLite(), dbname = "DB/hopper.db")
 
 source("helper.R")
 source("storage.R")

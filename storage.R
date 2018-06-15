@@ -1,4 +1,4 @@
-sqlitePath <- "hopper.db"
+sqlitePath <- "DB/hopper.db"
 
 save_data_tidy <- function(con, df, table){
 
